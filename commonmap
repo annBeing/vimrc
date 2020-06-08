@@ -1,0 +1,118 @@
+"{map
+let mapleader= "\<space>"
+nnoremap gh <C-w>h
+nnoremap gj <C-w>j
+nnoremap gk <C-w>k
+nnoremap gl <C-w>l
+nnoremap gp <C-w>p
+
+nnoremap <leader><leader>\ :wincmd \|<CR>
+nnoremap <leader><leader>= :wincmd =<CR>
+nnoremap <leader><leader>- :wincmd _<CR>
+
+noremap <leader>nk :leftabove new<CR>
+noremap <leader>nj :rightbelow new<CR>
+noremap <leader>vh :leftabove vnew<CR>
+noremap <leader>vl :rightbelow vnew<CR>
+noremap <leader>nt :tabnew<CR>
+noremap <leader>\ :nohlsearch<CR>
+noremap <leader>cp :pc<CR>
+noremap <leader>cb :q!<CR>
+noremap <leader>ct :tabclose<CR>
+noremap <leader>ca :confirm qall<cr>
+
+noremap <leader>cq :cclose<CR>
+
+let g:Lf_CommandMap = {'<Up>': ['<C-p>']}
+noremap ： :
+noremap ;w :w<CR>
+nnoremap Q <nop>
+set bg=dark
+inoremap <C-A> <Home>
+inoremap <C-E> <End>
+inoremap <C-B> <Left>
+inoremap <C-E> <End>
+inoremap <C-F> <Right>
+
+cmap <C-A> <Home>
+cmap <C-E> <End>
+cmap <C-B> <Left>
+cmap <C-E> <End>
+cmap <C-F> <Right>
+nmap <leader>; :
+
+nnoremap <c-t> :call ToggleTerminal()<CR>
+imap <c-t> <ESC>:call ToggleTerminal()<CR>
+tmap <c-t> <c-w>:call ToggleTerminal()<CR>
+command Xml call Xml()
+command Cmd call Cmd()
+command Path let @+=expand('%:p')
+command! -nargs=0 JunkFile call s:open_junk_file()
+function! s:open_junk_file()
+    let junk_dir = get(g:,'asc_junk','~/.vim/junk')
+    let junk_dir = junk_dir . strftime('/%Y/%m')
+    let real_dir = expand(junk_dir)
+    if !isdirectory(real_dir)
+        call mkdir(real_dir,'p')
+    endif
+
+    let filename = junk_dir.strftime('/%Y-%m-%d-%H%M%S.')
+    let filename = tr(filename,'\', '/')
+    let filename = input('Junk Code: ', filename)
+    if filename != ''
+        execute 'edit ' . fnameescape(filename)
+    endif
+endfunction
+
+command! -nargs=0 JunkList call s:open_junk_list()
+function! s:open_junk_list()
+    let junk_dir = get(g:, 'asc_junk', '~/.vim/junk')
+    let junk_dir = expand(junk_dir) .strftime('/%Y/%m')
+    let junk_dir = tr(junk_dir, '\', '/')
+    execute "Leaderf file " . fnameescape(junk_dir)
+endfunction
+
+let s:bufnr_pwsh = -1
+let s:winid =-1
+function! ToggleTerminal()
+    if !bufexists(s:bufnr_pwsh)
+        let s:bufnr_pwsh = -1
+    endif
+    if s:bufnr_pwsh == -1
+        "execute "botright terminal ++noclose ++norestore ++rows=20 pwsh -nologo"
+        let s:bufnr_pwsh = term_start("bash", #{hidden: 1, term_finish: 'close'})
+        let s:winid = popup_create(s:bufnr_pwsh, #{minwidth: 100, minheight: 20,maxheight:100})
+    else
+        if(s:winid >0)
+            call popup_close(s:winid)
+            let s:winid = -1
+        else
+            let s:winid = popup_create(s:bufnr_pwsh, #{minwidth: 100, minheight: 20})
+        endif
+    endif
+endfunction
+
+function!Xml() abort
+    :set ft=xml
+    :%s/></>\r</g
+    :normal gg=G
+endfunction
+
+function!GetCurFilePath() abort
+    let cur_dir=getcwd()
+    call setreg('+',cur_dir)
+endfunction
+
+function! DBIn() range
+    let lines = getline(a:firstline, a:lastline)
+    let arr = []
+    call add(arr,'(')
+    for l in lines
+        call add(arr,"'" . l . "',")
+    endfor
+
+    let arr[-1] = substitute(arr[-1],",$","","")
+    call add(arr,')')
+    call setbufline('%', a:firstline, arr)
+endfunction
+"}
